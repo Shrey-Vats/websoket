@@ -8,22 +8,10 @@ const httpServer = app.listen(8080)
 const wss = new WebSocketServer({server: httpServer});
 
 wss.on("connection", (ws) => {
-    
+    ws.send("connected backend")
     ws.on("error", console.error);
 
-    ws.on("message", (data, isBinary) => {
-        wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN){
-                client.send(data, {binary: isBinary});
-                ws.send("hi i am server x")
-            }
-        })
+    ws.on("message", (data) => {
+        ws.send(data + " hi i am shey")
     })
-
-    const s =setInterval(() => {
-        ws.send((Math.random() * 100).toFixed(2));
-    }, 1000)
-    
-    console.log(s)
-
 });

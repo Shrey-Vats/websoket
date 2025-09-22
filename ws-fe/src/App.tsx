@@ -6,30 +6,46 @@ interface message {
 }
 
 function App() {
-  const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [socket, setSocket] = useState<WebSocket>();
   const [messages, setMessages] = useState<message[]>([]);
   const [input, setInput] = useState<string>("");
 
   useEffect(() => {
-    const newSocket = new WebSocket("ws://localhost:8080");
+    const connectToWebsocket = () => {
+      const newSocket = new WebSocket("ws://localhost:8080");
 
-    newSocket.onopen = () => {
-      console.log("Connection established");
-      newSocket.send("Hello Server!");
-    };
+      //connection open
+      newSocket.onopen = () => {
+        console.log("Connection established");
+        newSocket.send("Hello Server!");
+      };
 
-    newSocket.onmessage = (event) => {
-      console.log("From server:", event.data);
-      setMessages((messages) => [
-        ...messages,
-        {
-          message: event.data.toString(),
-          varient: "recived",
-        },
-      ]);
+      // message recived
+      newSocket.onmessage = (event) => {
+        console.log("From server:", event.data);
+
+        setMessages((messages) => [
+          ...messages,
+          {
+            message: event.data.toString(),
+            varient: "recived",
+          },
+        ]);
+
+      };
+
+      //connection error
+      newSocket.onerror = (error) => {
+        console.error("WebSocket error: ", error);
+      }
+
+      newSocket.onclose = (close) => {
+        console.log("Server close, :", close.code, close.reason)
+      }
+
+      setSocket(newSocket);
     };
-    setSocket(newSocket);
-    return () => newSocket.close();
+    connectToWebsocket()
   }, []);
 
   const onSumbit = () => {
@@ -41,6 +57,7 @@ function App() {
       },
     ]);
     console.log(messages);
+
     socket?.send(input!);
   };
 
