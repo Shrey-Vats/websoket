@@ -1,15 +1,29 @@
-import { WebSocketServer } from "ws"
+import { WebSocketServer, WebSocket  } from "ws"
+import express from "express"
 
-const wss = new WebSocketServer({port: 8080});
+const app = express();
 
-wss.on("connection", (socket) => {
-    console.log("user Connected")
+const httpServer = app.listen(8080)
 
-    socket.on("message", (e) => {
-        console.log(e.toString())
-        if (e.toString() === "ping"){
-            socket.send("pong")
-        }
+const wss = new WebSocketServer({server: httpServer});
+
+wss.on("connection", (ws) => {
+    
+    ws.on("error", console.error);
+
+    ws.on("message", (data, isBinary) => {
+        wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN){
+                client.send(data, {binary: isBinary});
+                ws.send("hi i am server x")
+            }
+        })
     })
-});
 
+    const s =setInterval(() => {
+        ws.send((Math.random() * 100).toFixed(2));
+    }, 1000)
+    
+    console.log(s)
+
+});

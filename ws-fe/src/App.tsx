@@ -1,57 +1,85 @@
-import React, { useEffect, useRef, useState } from "react";
-import IncomingBubble from "./components/IncomingBubble";
-import OutgoingMessage from "./components/OutgoingMessage";
+import { useEffect, useState } from "react";
+
+interface message {
+  message: string;
+  varient: "send" | "recived";
+}
 
 function App() {
-
-  const inputRef = useRef<HTMLInputElement | null>()
-
-  // const [input, setInput] = useState<null | string>(null)
-  // const [error, setError] = useState<null | string>(null)  
-  const [sendMessages, setSendMessages] = useState<null | string>(null)
-  const [recivedMessage, setRecivedMessage] = useState<null | string>()
-  const [socket, setSocket] = useState()
- 
-             
-  const sendMessage  = () => {
-    if (!socket) {
-      return;
-    }  
-
-    const InputMessage = inputRef.current?.value
-    // @ts-ignore
-    socket.send(InputMessage)
-  }
+  const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [messages, setMessages] = useState<message[]>([]);
+  const [input, setInput] = useState<string>("");
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8080")
-    setSocket(ws)
-    ws.onerror = (error) => {
-      console.log(error)
-    }
+    const newSocket = new WebSocket("ws://localhost:8080");
 
-    ws.onmessage = (ev) => {
-      alert(ev.data)
-    }
-  }, [])
+    newSocket.onopen = () => {
+      console.log("Connection established");
+      newSocket.send("Hello Server!");
+    };
+
+    newSocket.onmessage = (event) => {
+      console.log("From server:", event.data);
+      setMessages((messages) => [
+        ...messages,
+        {
+          message: event.data.toString(),
+          varient: "recived",
+        },
+      ]);
+    };
+    setSocket(newSocket);
+    return () => newSocket.close();
+  }, []);
+
+  const onSumbit = () => {
+    setMessages((messages) => [
+      ...messages,
+      {
+        message: input!,
+        varient: "send",
+      },
+    ]);
+    console.log(messages);
+    socket?.send(input!);
+  };
 
   return (
-    <div className="h-screen w-screen box-border">
-      <div className="h-10/12 w-full">
-      {sendMessages !== null?<OutgoingMessage OutgoingMessage={sendMessages}/>:""}
-      <IncomingBubble IncomingMessage="  hi there i am shrey vats. what are you doing ? I am just enjoying. And i am a 15 y/o develoer who is learning buildng daily to grow it and its own"/>
-      </div>
-      <div className="h-1/12 w-full flex justify-center items-center">
-        <div className="h-10/12 w-10/12 bg-gray-200 rounded-3xl border border-gray-400 flex justify-center items-center">
+    <div className="w-screen h-screen flex justify-center items-center bg-gray-950 text-white">
+      <div className="w-6/12 h-9/12 border border-gray-300 rounded-2xl px-5">
+        <div className="w-full h-9/12 border border-gray-400 rounded-md">
+          {messages.map((message, idx) => (
+            <div
+              key={idx}
+              className={`flex ${
+                message.varient === "send" ? "justify-end" : "justify-start"
+              }`}
+            >
+              <p
+                className={`font-medium text-base px-4 py-2 ${
+                  message.varient === "send"
+                    ? "bg-white text-black"
+                    : "bg-gray-600 text-white"
+                }`}
+              >
+                {message.message}
+              </p>
+            </div>
+          ))}
+        </div>
+        <div className="w-full h-3/12">
           <input
             type="text"
-            ref={inputRef}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSendMessages(e.target.value)}
-            value={sendMessages ?? ""}
-            className="h-full w-11/12 rounded-l-3xl outline-none border border-gray-400 px-2"
-            placeholder="Ask anything"
+            value={input!}
+            onChange={(e) => setInput(e.target.value)}
+            className="w-9/12 h-full border-gray-400 rounded-xl outline-none"
           />
-          <button className="w-1/12 h-full bg-blue-600 text-white rounded-r-3xl" onClick={sendMessage}>Send</button>
+          <button
+            onClick={onSumbit}
+            className="w-3/12 h-full bg-gray-200 text-black rounded-md hover:bg-gray-300"
+          >
+            Send
+          </button>
         </div>
       </div>
     </div>
