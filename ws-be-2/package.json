@@ -1,0 +1,22 @@
+{
+  "name": "ws-be-2",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsc -b && node dist/index.js"
+  },
+  "dependencies": {
+    "@types/express": "^5.0.3",
+    "@types/websocket": "^1.0.10",
+    "@types/ws": "^8.18.1",
+    "express": "^5.1.0",
+    "typescript": "^5.9.2",
+    "websocket": "^1.0.35",
+    "ws": "^8.18.3",
+    "zod": "^4.1.11"
+  }
+}

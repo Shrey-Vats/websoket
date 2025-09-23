@@ -1,11 +1,7 @@
-import { WebSocketServer, WebSocket  } from "ws"
+import  WebSocket , { WebSocketServer } from "ws"
 import express from "express"
 
-const app = express();
-
-const httpServer = app.listen(8080)
-
-const wss = new WebSocketServer({server: httpServer});
+const wss = new WebSocketServer({ port: 8080 });
 
 wss.on("connection", (ws) => {
     ws.send("connected backend")
@@ -14,4 +10,5 @@ wss.on("connection", (ws) => {
     ws.on("message", (data) => {
         ws.send(data + " hi i am shey")
     })
-});
+});     
+   
